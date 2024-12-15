@@ -14,12 +14,20 @@ void frodo_encode(uint16_t* K, uint16_t* k)
 
     size_t mul = (1 << (D - B));
     size_t kIter = 0;
+    size_t tmp = 0;
     for (size_t i = 0; i < MATRIX_LEN; ++i)
     {
-        K[i / nm + i % nm] = mul * ((k[kIter] >> bitIter) & (mask)); //
-        bitIter += B;
-        if (i % 16 == 0)
-
+        if (i % 16 == 0 && i > 0)
+        {
+            tmp = ((k[kIter] >> (bitIter - bitIter % 16)) & (mask));
+            kIter += 1;
             bitIter %= 16;
+        }
+
+        tmp |= ((k[kIter] >> bitIter) & (mask));
+        K[i / nm + i % nm] = mul * tmp; //
+        bitIter += B;
     }
 }
+
+void frodo_decode(uint8_t* K, uint16_t* k) {}
