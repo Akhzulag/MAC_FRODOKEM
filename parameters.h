@@ -11,4 +11,5 @@
 #define nm 8
 #define MATRIX_LEN 64
 #define B_IN_16 int(ceil((double)B / 16.0))
+
 #endif
