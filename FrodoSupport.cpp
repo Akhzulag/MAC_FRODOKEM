@@ -6,6 +6,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <filesystem>
+#include <iterator>
 
 void frodo_encode(uint16_t* K, uint16_t* k)
 {
@@ -73,26 +74,63 @@ std::uint16_t rotate16bit(uint16_t a)
 void frodo_pack(uint16_t* C, uint8_t* b, uint16_t n1, uint16_t n2)
 {
     size_t matrix_len = n1 * n2;
-    size_t mask = (1 << 8) - 1;
+    size_t mask = (1 << 16) - 1;
     size_t kIter = 0;
     size_t bitIter = 0;
-
-    int tmp = 0;
-
-    for (int i = 0; i < matrix_len; ++i)
+    size_t bitCut = 8;
+    size_t bit = 0;
+    uint16_t tmp = 0;
+    int i = 0;
+    int bI;
+    while (i < matrix_len)
     {
-        bitIter %= 8;
-        std::uint16_t tmp = rotate16bit(C[i]);
-        b[kIter] |= (tmp << bitIter) & mask;
-        b[++kIter] |= ((tmp >> (8 - bitIter))) & mask;
-        if (bitIter != 1)
+        tmp = rotate16bit(C[i]);
+
+        // maybe bitIter and bit should make in one
+        // parametr, and take while % D != 0, and if % 8 == 0
+        while (bitIter != D)
         {
-            b[++kIter] |=
-                (tmp >> (D - 16 + bitIter)) & mask; // D - 16 + bitIter
+            b[bI] |= (tmp >> bitIter) & (mask >> bitCut);
+            bitIter += bitCut;
+            bit += bitCut;
+            bitCut = (D - bitIter); // mod
+
+            if (bit % 8 == 0 && bit > 0)
+                ++bI;
         }
 
-        bitIter += D;
+        bitIter = 0;
+        bitCut = 8 - bitCut;
+        i += 1;
     }
 }
 
-void frodo_unpack(uint16_t* C, uint8_t* b, uint16_t n1, uint16_t n2) {}
+void unrotate16bit(uint16_t& a)
+{
+    if (D == 15)
+        a = a << 1;
+
+    for (int i = 0; i < 8; ++i)
+    {
+        a = (a >> i) | (a << i);
+    }
+}
+
+void frodo_unpack(uint16_t* C, uint8_t* b, uint16_t n1, uint16_t n2)
+{
+    size_t matrix_len = n1 * n2;
+    size_t bIter = 0;
+    size_t bitIter = 0;
+
+    for (size_t i = 0; i < MATRIX_LEN; i++)
+    {
+        bitIter %= D;
+        C[i] |= b[bIter] << bitIter;
+        bitIter += 8;
+        C[i] |= b[++bIter] << bitIter;
+        bitIter = 15 - bitIter;
+        if (bitIter != 1 && bitIter != 0) // need test i'm not sure in 8
+        {
+        }
+    }
+}
