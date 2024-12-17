@@ -119,18 +119,28 @@ void unrotate16bit(uint16_t& a)
 void frodo_unpack(uint16_t* C, uint8_t* b, uint16_t n1, uint16_t n2)
 {
     size_t matrix_len = n1 * n2;
-    size_t bIter = 0;
+    size_t mask = (1 << 16) - 1;
+    size_t kIter = 0;
     size_t bitIter = 0;
-
-    for (size_t i = 0; i < MATRIX_LEN; i++)
+    size_t bitCut = 8;
+    size_t bit = 0;
+    uint16_t tmp = 0;
+    int i = 0;
+    int bI;
+    while (i < matrix_len)
     {
-        bitIter %= D;
-        C[i] |= b[bIter] << bitIter;
-        bitIter += 8;
-        C[i] |= b[++bIter] << bitIter;
-        bitIter = 15 - bitIter;
-        if (bitIter != 1 && bitIter != 0) // need test i'm not sure in 8
+
+        while (bitIter != D)
         {
+
+            bitIter += bitCut;
+            bit += bitCut;
+            bitCut = (D - bitIter); // mod
+
+            if (bit % 8 == 0 && bit > 0)
+            {
+                ++bI;
+            }
         }
     }
 }
