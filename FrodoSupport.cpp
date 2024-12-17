@@ -25,9 +25,9 @@ void frodo_encode(uint16_t* K, uint16_t* k)
         tmp = 0;
         if (i % B_IN_16 == 0 && i > 0)
         {
-            tmp = ((k[kIter] >> (bitIter - (bitIter ^ mask16bit))) & (mask));
+            tmp = ((k[kIter] >> (bitIter - (bitIter & mask16bit))) & (mask));
             ++kIter;
-            bitIter ^= mask16bit;
+            bitIter &= mask16bit;
         }
     }
 }
@@ -43,14 +43,14 @@ void frodo_decode(uint16_t* K, uint16_t* k)
     int tmp = 0;
     for (size_t i = 0; i < MATRIX_LEN; ++i)
     {
-        bitIter ^= mask16bit;
+        bitIter &= mask16bit; // change ^ to & for mod operation
         tmp = uint16_t((0.5 + K[i] * mul)) & modB;
         if (i % B_IN_16 == 0 && i > 0)
         {
             k[kIter] |= (tmp << (bitIter)&mask16bit);
             ++kIter;
             k[kIter] = tmp >> (B - 16 + bitIter);
-            bitIter ^= mask16bit;
+            bitIter &= mask16bit; // change ^ to & for mod operation
         }
         else
         {
@@ -77,7 +77,7 @@ void frodo_pack(uint16_t* C, uint8_t* b, uint16_t n1, uint16_t n2)
     size_t mask = (1 << 16) - 1;
     size_t kIter = 0;
     size_t bitIter = 0;
-    size_t bitCut = 8;
+    int bitCut = 8;
     size_t bit = 0;
     uint16_t tmp = 0;
     int i = 0;
@@ -119,10 +119,10 @@ void unrotate16bit(uint16_t& a)
 void frodo_unpack(uint16_t* C, uint8_t* b, uint16_t n1, uint16_t n2)
 {
     size_t matrix_len = n1 * n2;
-    size_t mask = (1 << 16) - 1;
+    size_t mask = (1 << 8) - 1;
     size_t kIter = 0;
-    size_t bitIter = 0;
-    size_t bitCut = 8;
+    int bitIter = 0;
+    int bitCut = 8;
     size_t bit = 0;
     uint16_t tmp = 0;
     int i = 0;
@@ -132,7 +132,7 @@ void frodo_unpack(uint16_t* C, uint8_t* b, uint16_t n1, uint16_t n2)
 
         while (bitIter != D)
         {
-
+            C[i] |= ((b[bI] >> bitCut % 8) & (mask >> (bitCut % 8)));
             bitIter += bitCut;
             bit += bitCut;
             bitCut = (D - bitIter); // mod
@@ -142,5 +142,10 @@ void frodo_unpack(uint16_t* C, uint8_t* b, uint16_t n1, uint16_t n2)
                 ++bI;
             }
         }
+
+        bitIter = 0;
+        bitCut = 8 - bitCut;
+
+        unrotate16bit(C[i]);
     }
 }
