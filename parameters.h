@@ -3,7 +3,7 @@
 #ifndef parameters
 #define parameters
 
-// #define FRODO // uncomment if you want Frodo-640, comment if you want Frodo-976
+ #define FRODO // uncomment if you want Frodo-640, comment if you want Frodo-976
 #ifdef FRODO
 #define N 640
 #define D 15
