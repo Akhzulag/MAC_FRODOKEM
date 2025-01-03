@@ -6,7 +6,15 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 find_package(OpenSSL REQUIRED)
 
-add_executable(FrodoKEM main.cpp FrodoSupport.cpp)
+add_executable(FrodoKEM
+        main.cpp
+        FrodoSupport.cpp
+        FrodoRandom.cpp
+        SHAKE.cpp
+        AES.cpp
+        FrodoPke.cpp
+        FrodoPke.h
+)
 
 target_link_libraries(FrodoKEM PRIVATE OpenSSL::SSL OpenSSL::Crypto)
 
